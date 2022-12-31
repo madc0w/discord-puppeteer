@@ -20,35 +20,31 @@ const puppeteer = require('puppeteer-extra');
 	});
 
 	// const body = await page.$eval('body', (el) => el.innerText);
-	// const bodyHtml = await page.evaluate(() => document.body.innerHTML);
-	// console.log(bodyHtml);
 
 	const link = await findDiv(page, 'Continue in browser');
-	console.log(link);
+	await link.click();
+	const bodyHtml = await page.evaluate(() => document.body.innerHTML);
+	console.log(bodyHtml);
 })();
 
-// Normalizing the text
-function getText(linkText) {
-	linkText = linkText.replace(/\r\n|\r/g, '\n');
-	linkText = linkText.replace(/\ +/g, ' ');
+function normalize(text) {
+	text = text.replace(/\r\n|\r/g, '\n');
+	text = text.replace(/\ +/g, ' ');
 
 	// Replace &nbsp; with a space
 	const nbspPattern = new RegExp(String.fromCharCode(160), 'g');
-	return linkText.replace(nbspPattern, ' ');
+	return text.replace(nbspPattern, ' ');
 }
 
 async function findDiv(page, string) {
 	const links = await page.$$('div');
-	for (let i = 0; i < links.length; i++) {
-		const text = await links[i].getProperty('innerText');
-		console.log(text);
+	for (const link of links) {
+		const text = await (await link.getProperty('innerText')).jsonValue();
+		// console.log(text);
 		// const linkText = await valueHandle.jsonValue();
 		// const text = getText(linkText);
 		if (string == text) {
-			console.log(string);
-			console.log(text);
-			console.log('Found');
-			return links[i];
+			return link;
 		}
 	}
 }
